@@ -35,6 +35,33 @@ The project was originally developed as `dnsimplectl`; the binary name is intent
 
 ## Installation
 
+### Homebrew
+
+Target install command:
+
+```bash
+brew install dnsimple
+```
+
+To make that work, this repo now ships:
+
+- A release workflow that publishes versioned binaries
+- GoReleaser Homebrew formula publishing to `dorkitude/homebrew-dnsimple`
+- A local formula at `Formula/dnsimple.rb` for source installs/testing
+
+If you are testing before Homebrew core includes the formula:
+
+```bash
+brew tap dorkitude/dnsimple https://github.com/dorkitude/homebrew-dnsimple
+brew install dnsimple
+```
+
+Release prerequisites for Homebrew publishing:
+
+- Create the tap repo `dorkitude/homebrew-dnsimple`
+- Add `HOMEBREW_TAP_GITHUB_TOKEN` in this repo's GitHub Actions secrets (token needs write access to the tap repo)
+- Tag a release (`git tag vX.Y.Z && git push origin vX.Y.Z`) to publish binaries + formula updates
+
 ### Build locally
 
 ```bash

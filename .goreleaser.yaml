@@ -1,0 +1,54 @@
+version: 2
+
+project_name: dnsimple
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: dnsimple
+    binary: dnsimple
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: default
+    ids:
+      - dnsimple
+    formats:
+      - tar.gz
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  disable: true
+
+brews:
+  - name: dnsimple
+    directory: Formula
+    homepage: https://github.com/dorkitude/simple
+    description: Terminal-first DNSimple client (TUI + CLI)
+    license: MIT
+    repository:
+      owner: dorkitude
+      name: homebrew-dnsimple
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: dnsimple release bot
+      email: bot@users.noreply.github.com
+    install: |
+      bin.install "dnsimple"
+      bin.install_symlink "dnsimple" => "simple"
+      bin.install_symlink "dnsimple" => "dnsimplectl"
+    test: |
+      assert_match "DNSimple", shell_output("#{bin}/dnsimple --help")

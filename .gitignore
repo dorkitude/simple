@@ -12,6 +12,7 @@
 *.out
 coverage.out
 *.coverprofile
+dist/
 
 # Editor / OS files
 .DS_Store
