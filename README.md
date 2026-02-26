@@ -16,6 +16,22 @@ Simple is a terminal-first DNSimple client with two interfaces:
 
 The project was originally developed as `dnsimplectl`; the binary name is intentionally flexible (`simple`, `dnsimplectl`, or `dnsimple`).
 
+## Homebrew Quick Install
+
+Current working install command:
+
+```bash
+brew install dorkitude/dnsimple/dnsimple
+```
+
+After the Homebrew core PR merges, this becomes:
+
+```bash
+brew install dnsimple
+```
+
+Tracking PR: https://github.com/Homebrew/homebrew-core/pull/269619
+
 ## Highlights
 
 - TUI auth flow with token validation before saving credentials
@@ -37,7 +53,7 @@ The project was originally developed as `dnsimplectl`; the binary name is intent
 
 ### Homebrew
 
-Target install command:
+Target install command (after Homebrew core merge):
 
 ```bash
 brew install dnsimple
@@ -49,11 +65,11 @@ To make that work, this repo now ships:
 - GoReleaser Homebrew formula publishing to `dorkitude/homebrew-dnsimple`
 - A local formula at `Formula/dnsimple.rb` for source installs/testing
 
-If you are testing before Homebrew core includes the formula:
+Until Homebrew core includes the formula, use:
 
 ```bash
 brew tap dorkitude/dnsimple https://github.com/dorkitude/homebrew-dnsimple
-brew install dnsimple
+brew install dorkitude/dnsimple/dnsimple
 ```
 
 Release prerequisites for Homebrew publishing:
