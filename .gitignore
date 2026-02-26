@@ -1,0 +1,22 @@
+# Binaries
+/simple
+/dnsimple
+/dnsimplectl
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go build/test artifacts
+*.test
+*.out
+coverage.out
+*.coverprofile
+
+# Editor / OS files
+.DS_Store
+.vscode/
+.idea/
+
+# Local env / logs
+*.log
