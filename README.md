@@ -1,6 +1,15 @@
 # simple
 
-A terminal-first DNSimple client with two interfaces:
+A terminal client for DNSimple.
+
+Non-interactive commands for the full API.  Interactive dashboard, too:
+
+<img width="2184" height="1424" alt="image" src="https://github.com/user-attachments/assets/a6defb2b-c54c-4fe8-9c6f-a0add63a7094" />
+
+
+
+
+Simple is a terminal-first DNSimple client with two interfaces:
 
 - A Bubble Tea TUI (`simple` with no subcommand)
 - A Cobra CLI (`simple auth`, `simple domains`, `simple zones`, `simple records`, etc.)
