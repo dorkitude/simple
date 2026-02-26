@@ -80,6 +80,84 @@ simple demo
 
 `simple demo` launches the same TUI application using a seeded in-memory backend. It is safe for screenshots, demos, and testing UI interactions without touching your real DNSimple account.
 
+## CLI Guide
+
+### Global flags
+
+These apply to most commands:
+
+- `--json` output JSON instead of styled text
+- `--account <id>` override cached DNSimple account ID
+- `--sandbox` use DNSimple sandbox API
+- `--no-color` disable colored output
+
+### Commands
+
+#### Authentication
+
+```bash
+simple auth login
+simple auth logout
+simple auth status
+simple auth setup
+```
+
+#### Whoami
+
+```bash
+simple whoami
+simple whoami --json
+```
+
+#### Domains
+
+```bash
+simple domains list
+simple domains list --filter example
+simple domains get example.com
+simple domains create example.com
+simple domains delete example.com
+```
+
+#### Zones
+
+```bash
+simple zones list
+simple zones get example.com
+simple zones file example.com
+simple zones distribution example.com
+simple zones activate example.com
+simple zones deactivate example.com
+```
+
+#### Records
+
+```bash
+simple records list example.com
+simple records list example.com --type A
+simple records get example.com 12345
+
+simple records create example.com --type A --name www --content 1.2.3.4
+simple records update example.com 12345 --content 5.6.7.8
+simple records delete example.com 12345
+
+simple records distribution example.com 12345
+```
+
+### JSON output for automation
+
+```bash
+simple domains list --json | jq
+simple records list example.com --json | jq '.[] | {id, type, name, content}'
+```
+
+### Sandbox usage
+
+```bash
+simple --sandbox whoami
+simple --sandbox domains list
+```
+
 ## TUI Guide
 
 Running `simple` with no subcommand launches the TUI. `simple --help` still shows CLI help.
@@ -186,84 +264,6 @@ Current TUI mutations include:
 - Built-in shortcut reference
 - Config/token/config file path display
 - Config directory override guidance (`DNSIMPLE_CONFIG_DIR`)
-
-## CLI Guide
-
-### Global flags
-
-These apply to most commands:
-
-- `--json` output JSON instead of styled text
-- `--account <id>` override cached DNSimple account ID
-- `--sandbox` use DNSimple sandbox API
-- `--no-color` disable colored output
-
-### Commands
-
-#### Authentication
-
-```bash
-simple auth login
-simple auth logout
-simple auth status
-simple auth setup
-```
-
-#### Whoami
-
-```bash
-simple whoami
-simple whoami --json
-```
-
-#### Domains
-
-```bash
-simple domains list
-simple domains list --filter example
-simple domains get example.com
-simple domains create example.com
-simple domains delete example.com
-```
-
-#### Zones
-
-```bash
-simple zones list
-simple zones get example.com
-simple zones file example.com
-simple zones distribution example.com
-simple zones activate example.com
-simple zones deactivate example.com
-```
-
-#### Records
-
-```bash
-simple records list example.com
-simple records list example.com --type A
-simple records get example.com 12345
-
-simple records create example.com --type A --name www --content 1.2.3.4
-simple records update example.com 12345 --content 5.6.7.8
-simple records delete example.com 12345
-
-simple records distribution example.com 12345
-```
-
-### JSON output for automation
-
-```bash
-simple domains list --json | jq
-simple records list example.com --json | jq '.[] | {id, type, name, content}'
-```
-
-### Sandbox usage
-
-```bash
-simple --sandbox whoami
-simple --sandbox domains list
-```
 
 ## Configuration and Credential Storage
 
