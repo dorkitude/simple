@@ -41,6 +41,7 @@ Tracking PR: https://github.com/Homebrew/homebrew-core/pull/269619
 - Confirm-typed mutation dialogs (`type confirm`) for destructive/state-changing TUI actions
 - Demo mode (`simple demo`) using the real TUI against an in-memory fake backend
 - CLI coverage for auth, domains, zones, and records (including record create/update/delete)
+- Registrar auto-renew status and on/off toggle (`simple domains autorenew`)
 - JSON output (`--json`) for scripting and automation
 - DNSimple sandbox support (`--sandbox`)
 
@@ -169,7 +170,17 @@ simple domains list --filter example
 simple domains get example.com
 simple domains create example.com
 simple domains delete example.com
+
+# Auto-renew (registered domains only)
+simple domains autorenew example.com          # show status
+simple domains autorenew example.com on       # enable
+simple domains autorenew example.com off      # disable
+simple domains autorenew example.com --json
 ```
+
+`autorenew` accepts `on`/`off` (also `enable`/`disable`). It is a no-op if the
+domain is already in the requested state, and gives a clear error if the domain
+is not registered with DNSimple (for example, DNS-hosted only).
 
 #### Zones
 
@@ -365,7 +376,7 @@ What is still CLI-only or missing in the TUI:
 
 - Record create/update flows
 - Batch record changes
-- Some advanced DNSimple features (DNSSEC, templates, webhooks, registrar APIs, etc.)
+- Some advanced DNSimple features (DNSSEC, templates, webhooks, most registrar APIs, etc.)
 
 See `ROADMAP.md` for the implementation roadmap and API coverage priorities.
 
@@ -383,6 +394,12 @@ go build -o simple .
 ./simple         # TUI
 ./simple --help  # CLI help
 ./simple demo    # demo backend TUI
+```
+
+### Test
+
+```bash
+go test ./...
 ```
 
 ### Format

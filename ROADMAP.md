@@ -99,7 +99,7 @@ Goal: broaden from DNS-only to domain operations where users expect DNSimple par
 - Pricing / premium pricing
 - Registration
 - Transfer-in and transfer authorization/cancel/status
-- Renewal status / renew / auto-renew enable/disable
+- Renewal status / renew / auto-renew enable/disable (auto-renew status + on/off shipped in v0.2.0: `simple domains autorenew`)
 - WHOIS privacy status / enable / disable / renew
 - Delegation management (including vanity delegation transitions)
 
