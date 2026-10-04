@@ -10,7 +10,7 @@ import (
 const primaryJSON = `{"id":4,"account_id":1010,"name":"PrimaryProduction","ip":"1.2.3.4","port":53,"linked_secondary_zones":["example.com"],"created_at":"2016-08-11T10:16:46Z","updated_at":"2016-08-11T10:16:46Z"}`
 
 func TestListPrimaryServers(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":[`+primaryJSON+`],"pagination":{"current_page":1}}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":[`+primaryJSON+`],"pagination":{"current_page":1}}`)
 	got, err := listPrimaryServers(context.Background(), c, "1010", 2, 10, "name:asc")
 	if err != nil || len(got) != 1 || got[0].Port != 53 || got[0].LinkedSecondaryZones[0] != "example.com" {
 		t.Fatalf("got %+v, %v", got, err)
@@ -22,7 +22,7 @@ func TestListPrimaryServers(t *testing.T) {
 }
 
 func TestGetPrimaryServer(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":`+primaryJSON+`}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":`+primaryJSON+`}`)
 	p, err := getPrimaryServer(context.Background(), c, "1010", 4)
 	if err != nil || p.Name != "PrimaryProduction" {
 		t.Fatalf("got %+v, %v", p, err)
@@ -31,7 +31,7 @@ func TestGetPrimaryServer(t *testing.T) {
 }
 
 func TestCreatePrimaryServer(t *testing.T) {
-	c, seen := recordingClient(t, 201, `{"data":`+primaryJSON+`}`)
+	c, seen := dnsRecordingClient(t, 201, `{"data":`+primaryJSON+`}`)
 	if _, err := createPrimaryServer(context.Background(), c, "1010", PrimaryServerAttributes{Name: "PrimaryProduction", IP: "1.2.3.4", Port: "5353"}); err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestCreatePrimaryServer(t *testing.T) {
 }
 
 func TestDeletePrimaryServer(t *testing.T) {
-	c, seen := recordingClient(t, 204, "")
+	c, seen := dnsRecordingClient(t, 204, "")
 	if err := deletePrimaryServer(context.Background(), c, "1010", 4); err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestDeletePrimaryServer(t *testing.T) {
 
 func TestLinkUnlinkPrimaryServer(t *testing.T) {
 	for _, link := range []bool{true, false} {
-		c, seen := recordingClient(t, 200, `{"data":`+primaryJSON+`}`)
+		c, seen := dnsRecordingClient(t, 200, `{"data":`+primaryJSON+`}`)
 		if _, err := linkPrimaryServer(context.Background(), c, "1010", 4, "example.com", link); err != nil {
 			t.Fatal(err)
 		}
@@ -70,7 +70,7 @@ func TestLinkUnlinkPrimaryServer(t *testing.T) {
 }
 
 func TestCreateSecondaryZone(t *testing.T) {
-	c, seen := recordingClient(t, 201, `{"data":{"id":1,"account_id":1010,"name":"example.com","secondary":true,"active":true}}`)
+	c, seen := dnsRecordingClient(t, 201, `{"data":{"id":1,"account_id":1010,"name":"example.com","secondary":true,"active":true}}`)
 	z, err := createSecondaryZone(context.Background(), c, "1010", "example.com")
 	if err != nil || !z.Secondary {
 		t.Fatalf("got %+v, %v", z, err)
@@ -82,7 +82,7 @@ func TestCreateSecondaryZone(t *testing.T) {
 }
 
 func TestSecondaryAPIError(t *testing.T) {
-	c, _ := recordingClient(t, 404, `{"message":"Primary server not found"}`)
+	c, _ := dnsRecordingClient(t, 404, `{"message":"Primary server not found"}`)
 	_, err := getPrimaryServer(context.Background(), c, "1010", 99)
 	if err == nil || !strings.Contains(err.Error(), "Primary server not found") {
 		t.Fatalf("expected API message in error, got %v", err)

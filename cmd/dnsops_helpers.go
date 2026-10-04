@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// errNeedsYes is returned when a destructive command runs without --yes.
-var errNeedsYes = fmt.Errorf("refusing to continue without --yes")
+// errRefusedWithoutYes is returned when a destructive command runs without --yes.
+var errRefusedWithoutYes = fmt.Errorf("refusing to continue without --yes")
 
 // addYesFlag registers the --yes confirmation flag on a destructive command.
 func addYesFlag(c *cobra.Command, what string) {
@@ -18,7 +18,7 @@ func addYesFlag(c *cobra.Command, what string) {
 }
 
 // requireYes returns nil when --yes was given. Otherwise it prints what the
-// command would do and returns errNeedsYes so the process exits non-zero.
+// command would do and returns errRefusedWithoutYes so the process exits non-zero.
 func requireYes(cmd *cobra.Command, plan ...string) error {
 	if yes, _ := cmd.Flags().GetBool("yes"); yes {
 		return nil
@@ -29,7 +29,7 @@ func requireYes(cmd *cobra.Command, plan ...string) error {
 		fmt.Printf("  %s %s\n", ui.AccentStyle.Render("•"), p)
 	}
 	fmt.Println(ui.Info("Re-run with --yes to do it."))
-	return errNeedsYes
+	return errRefusedWithoutYes
 }
 
 // parseID parses a positive numeric API identifier.
@@ -39,12 +39,6 @@ func parseID(kind, s string) (int64, error) {
 		return 0, fmt.Errorf("invalid %s ID %q (must be a positive number)", kind, s)
 	}
 	return id, nil
-}
-
-// addPageFlags registers --page and --per-page on a list command.
-func addPageFlags(c *cobra.Command) {
-	c.Flags().Int("page", 0, "Page number")
-	c.Flags().Int("per-page", 0, "Results per page")
 }
 
 // pageOptions builds SDK list options from --page and --per-page.
@@ -57,12 +51,4 @@ func pageOptions(cmd *cobra.Command) *dnsimple.ListOptions {
 		opts.PerPage = dnsimpleInt(perPage)
 	}
 	return opts
-}
-
-// shortDate trims an API timestamp down to its date part.
-func shortDate(ts string) string {
-	if len(ts) >= 10 {
-		return ts[:10]
-	}
-	return ts
 }

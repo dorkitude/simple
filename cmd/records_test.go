@@ -46,7 +46,7 @@ func TestRecordFieldsFromFlagsUnset(t *testing.T) {
 }
 
 func TestCreateZoneRecordSendsPriorityZero(t *testing.T) {
-	c, seen := recordingClient(t, 201, `{"data":{"id":5,"type":"MX","name":"","content":"mx.example.com","ttl":3600,"priority":0}}`)
+	c, seen := dnsRecordingClient(t, 201, `{"data":{"id":5,"type":"MX","name":"","content":"mx.example.com","ttl":3600,"priority":0}}`)
 	zero, ttl := 0, 600
 	resp, err := createZoneRecord(context.Background(), c, "1010", "example.com", RecordFields{
 		Type: "MX", Name: dnsimpleString(""), Content: "mx.example.com", Priority: &zero, TTL: &ttl, Regions: []string{"global"},
@@ -62,7 +62,7 @@ func TestCreateZoneRecordSendsPriorityZero(t *testing.T) {
 }
 
 func TestUpdateZoneRecordOnlyChangedFields(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":{"id":5,"type":"MX","content":"mx.example.com","priority":0}}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":{"id":5,"type":"MX","content":"mx.example.com","priority":0}}`)
 	zero := 0
 	if _, err := updateZoneRecord(context.Background(), c, "1010", "example.com", 5, RecordFields{Priority: &zero}); err != nil {
 		t.Fatal(err)
@@ -74,7 +74,7 @@ func TestUpdateZoneRecordOnlyChangedFields(t *testing.T) {
 }
 
 func TestCreateZoneRecordAPIError(t *testing.T) {
-	c, _ := recordingClient(t, 400, `{"message":"Validation failed"}`)
+	c, _ := dnsRecordingClient(t, 400, `{"message":"Validation failed"}`)
 	if _, err := createZoneRecord(context.Background(), c, "1010", "example.com", RecordFields{Type: "A", Content: "x"}); err == nil || !strings.Contains(err.Error(), "Validation failed") {
 		t.Fatalf("got %v", err)
 	}

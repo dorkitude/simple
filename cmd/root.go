@@ -29,12 +29,27 @@ var rootCmd = &cobra.Command{
 A beautiful CLI for managing DNS with DNSimple.
 
 ` + ui.SubtleStyle.Render("Commands:") + `
-  auth        Authenticate with DNSimple
-  whoami      Show current identity
-  domains     Manage domains
-  zones       Manage DNS zones
-  records     Manage DNS records
+  auth          Authenticate with DNSimple
+  whoami        Show current identity
+  accounts      List accounts and pick the active one
+  domains       Manage domains (DNSSEC, DS records, email forwards, pushes)
+  pushes        Accept or reject domain pushes sent to you
+  zones         Manage DNS zones (NS records, batch changes)
+  records       Manage DNS records
+  registrar     Register, transfer, renew; name servers, locks, privacy
+  certificates  SSL certificates and Let's Encrypt
+  contacts      Registrant contacts
+  templates     Record templates
+  services      One-click services
+  secondary     Secondary DNS primaries and zones
+  vanity        Vanity name servers
+  webhooks      Webhooks
+  tlds          Supported TLDs and their attributes
+  billing       Billing charges
+  analytics     DNS query analytics
 `,
+	SilenceErrors: true, // Execute prints errors itself, styled
+	SilenceUsage:  true, // an API error is not a usage mistake
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return tui.Run()
 	},

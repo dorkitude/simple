@@ -22,7 +22,7 @@ type seenRequest struct {
 
 // recordingClient returns a client whose fake API answers every request with
 // status and body, and records the requests it saw.
-func recordingClient(t *testing.T, status int, body string) (*dnsimple.Client, *[]seenRequest) {
+func dnsRecordingClient(t *testing.T, status int, body string) (*dnsimple.Client, *[]seenRequest) {
 	t.Helper()
 	var seen []seenRequest
 	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
@@ -57,8 +57,8 @@ func expectOne(t *testing.T, seen *[]seenRequest, method, path string) seenReque
 func TestRequireYes(t *testing.T) {
 	c := &cobra.Command{Use: "x"}
 	addYesFlag(c, "test")
-	if err := requireYes(c, "do a thing"); !errors.Is(err, errNeedsYes) {
-		t.Fatalf("without --yes: got %v, want errNeedsYes", err)
+	if err := requireYes(c, "do a thing"); !errors.Is(err, errRefusedWithoutYes) {
+		t.Fatalf("without --yes: got %v, want errRefusedWithoutYes", err)
 	}
 	if err := c.Flags().Set("yes", "true"); err != nil {
 		t.Fatal(err)

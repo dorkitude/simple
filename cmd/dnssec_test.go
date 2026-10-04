@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetDnssec(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":{"enabled":true}}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":{"enabled":true}}`)
 	on, err := getDnssec(context.Background(), c, "1010", "example.com")
 	if err != nil || !on {
 		t.Fatalf("getDnssec = %v, %v", on, err)
@@ -25,7 +25,7 @@ func TestSetDnssec(t *testing.T) {
 		{true, http.MethodPost, 201, `{"data":{"enabled":true}}`},
 		{false, http.MethodDelete, 204, ""},
 	} {
-		c, seen := recordingClient(t, tc.status, tc.body)
+		c, seen := dnsRecordingClient(t, tc.status, tc.body)
 		if err := setDnssec(context.Background(), c, "1010", "example.com", tc.enable); err != nil {
 			t.Fatalf("enable=%v: %v", tc.enable, err)
 		}
@@ -34,7 +34,7 @@ func TestSetDnssec(t *testing.T) {
 }
 
 func TestSetDnssecError(t *testing.T) {
-	c, _ := recordingClient(t, 400, `{"message":"DNSSEC cannot be enabled"}`)
+	c, _ := dnsRecordingClient(t, 400, `{"message":"DNSSEC cannot be enabled"}`)
 	if err := setDnssec(context.Background(), c, "1010", "example.com", true); err == nil {
 		t.Fatal("expected error")
 	}

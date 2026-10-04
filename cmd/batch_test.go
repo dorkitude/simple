@@ -127,7 +127,7 @@ func TestBatchFromStdin(t *testing.T) {
 }
 
 func TestBatchChangeRecords(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":{"creates":[{"id":1,"type":"MX","content":"mx.example.com"}],"updates":[{"id":123,"type":"A","content":"5.6.7.8"}],"deletes":[{"id":456}]}}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":{"creates":[{"id":1,"type":"MX","content":"mx.example.com"}],"updates":[{"id":123,"type":"A","content":"5.6.7.8"}],"deletes":[{"id":456}]}}`)
 	b, err := parseBatchFile(strings.NewReader(batchFile))
 	if err != nil {
 		t.Fatal(err)
@@ -160,7 +160,7 @@ func TestBatchChangeRecords(t *testing.T) {
 }
 
 func TestBatchChangeRecordsInvalidNotSent(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{}`)
+	c, seen := dnsRecordingClient(t, 200, `{}`)
 	if _, err := batchChangeRecords(context.Background(), c, "1010", "example.com", BatchChange{}); err == nil {
 		t.Fatal("expected error")
 	}

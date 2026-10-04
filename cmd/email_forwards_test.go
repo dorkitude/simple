@@ -9,7 +9,7 @@ import (
 const fwdJSON = `{"id":17,"domain_id":1,"alias_email":"hello@example.com","destination_email":"me@gmail.com","active":true}`
 
 func TestListEmailForwards(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":[`+fwdJSON+`],"pagination":{}}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":[`+fwdJSON+`],"pagination":{}}`)
 	got, err := listEmailForwards(context.Background(), c, "1010", "example.com", nil)
 	if err != nil || len(got) != 1 || got[0].AliasEmail != "hello@example.com" {
 		t.Fatalf("got %+v, %v", got, err)
@@ -18,7 +18,7 @@ func TestListEmailForwards(t *testing.T) {
 }
 
 func TestGetEmailForward(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":`+fwdJSON+`}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":`+fwdJSON+`}`)
 	if _, err := getEmailForward(context.Background(), c, "1010", "example.com", 17); err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func TestGetEmailForward(t *testing.T) {
 
 func TestCreateEmailForward(t *testing.T) {
 	for _, from := range []string{"hello", "hello@example.com", "hello@EXAMPLE.com"} {
-		c, seen := recordingClient(t, 201, `{"data":`+fwdJSON+`}`)
+		c, seen := dnsRecordingClient(t, 201, `{"data":`+fwdJSON+`}`)
 		if _, err := createEmailForward(context.Background(), c, "1010", "example.com", from, "me@gmail.com"); err != nil {
 			t.Fatalf("from %q: %v", from, err)
 		}
@@ -39,7 +39,7 @@ func TestCreateEmailForward(t *testing.T) {
 }
 
 func TestCreateEmailForwardValidation(t *testing.T) {
-	c, seen := recordingClient(t, 201, `{}`)
+	c, seen := dnsRecordingClient(t, 201, `{}`)
 	if _, err := createEmailForward(context.Background(), c, "1010", "example.com", "hello@other.com", "me@gmail.com"); err == nil {
 		t.Error("expected error for alias on another domain")
 	}
@@ -52,7 +52,7 @@ func TestCreateEmailForwardValidation(t *testing.T) {
 }
 
 func TestDeleteEmailForward(t *testing.T) {
-	c, seen := recordingClient(t, 204, "")
+	c, seen := dnsRecordingClient(t, 204, "")
 	if err := deleteEmailForward(context.Background(), c, "1010", "example.com", 17); err != nil {
 		t.Fatal(err)
 	}

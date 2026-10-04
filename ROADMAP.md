@@ -7,7 +7,7 @@ This roadmap reflects the current codebase and a DNSimple API coverage audit per
 The app is already strong for day-to-day DNS browsing and core DNS changes:
 
 - TUI: auth, tabbed navigation, global domain search, domain dashboard, diagnostics, guarded mutations
-- CLI: auth, whoami, domains, zones, records (including record create/update/delete)
+- CLI: the whole DNSimple API v2 (domains, zones, records, registrar, certificates, contacts, templates, services, secondary DNS, vanity, webhooks, TLDs, billing, analytics)
 - Demo mode: full TUI against a seeded in-memory backend (`simple demo`)
 
 The next phases focus on closing high-value gaps in DNS workflows, then expanding toward broader DNSimple platform coverage.

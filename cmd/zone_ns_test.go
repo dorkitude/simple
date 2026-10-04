@@ -8,7 +8,7 @@ import (
 )
 
 func TestUpdateZoneNSRecords(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":[{"id":1,"type":"NS","name":"","content":"ns1.dnsimple.com","ttl":3600}]}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":[{"id":1,"type":"NS","name":"","content":"ns1.dnsimple.com","ttl":3600}]}`)
 	got, err := updateZoneNSRecords(context.Background(), c, "1010", "example.com", zoneNSUpdate{
 		NSNames: []string{"ns1.dnsimple.com", "ns2.dnsimple-edge.net"}, NSSetIDs: []int64{1, 2},
 	})
@@ -22,7 +22,7 @@ func TestUpdateZoneNSRecords(t *testing.T) {
 }
 
 func TestUpdateZoneNSRecordsNamesOnly(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":[]}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":[]}`)
 	if _, err := updateZoneNSRecords(context.Background(), c, "1010", "example.com", zoneNSUpdate{NSNames: []string{"ns1.example.net"}}); err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestUpdateZoneNSRecordsNamesOnly(t *testing.T) {
 }
 
 func TestUpdateZoneNSRecordsEmpty(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":[]}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":[]}`)
 	if _, err := updateZoneNSRecords(context.Background(), c, "1010", "example.com", zoneNSUpdate{}); err == nil {
 		t.Fatal("expected error")
 	}

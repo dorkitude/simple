@@ -9,7 +9,7 @@ import (
 const pushJSON = `{"id":42,"domain_id":100,"contact_id":null,"account_id":2020}`
 
 func TestInitiateDomainPush(t *testing.T) {
-	c, seen := recordingClient(t, 201, `{"data":`+pushJSON+`}`)
+	c, seen := dnsRecordingClient(t, 201, `{"data":`+pushJSON+`}`)
 	p, err := initiateDomainPush(context.Background(), c, "1010", "example.com", "friend@example.net", "")
 	if err != nil || p.ID != 42 {
 		t.Fatalf("got %+v, %v", p, err)
@@ -24,7 +24,7 @@ func TestInitiateDomainPush(t *testing.T) {
 }
 
 func TestInitiateDomainPushNeedsTarget(t *testing.T) {
-	c, seen := recordingClient(t, 201, `{}`)
+	c, seen := dnsRecordingClient(t, 201, `{}`)
 	if _, err := initiateDomainPush(context.Background(), c, "1010", "example.com", "", ""); err == nil {
 		t.Fatal("expected error")
 	}
@@ -34,7 +34,7 @@ func TestInitiateDomainPushNeedsTarget(t *testing.T) {
 }
 
 func TestListDomainPushes(t *testing.T) {
-	c, seen := recordingClient(t, 200, `{"data":[`+pushJSON+`],"pagination":{}}`)
+	c, seen := dnsRecordingClient(t, 200, `{"data":[`+pushJSON+`],"pagination":{}}`)
 	got, err := listDomainPushes(context.Background(), c, "1010", nil)
 	if err != nil || len(got) != 1 {
 		t.Fatalf("got %+v, %v", got, err)
@@ -43,7 +43,7 @@ func TestListDomainPushes(t *testing.T) {
 }
 
 func TestAcceptDomainPush(t *testing.T) {
-	c, seen := recordingClient(t, 204, "")
+	c, seen := dnsRecordingClient(t, 204, "")
 	if err := acceptDomainPush(context.Background(), c, "1010", 42, 7); err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestAcceptDomainPush(t *testing.T) {
 }
 
 func TestRejectDomainPush(t *testing.T) {
-	c, seen := recordingClient(t, 204, "")
+	c, seen := dnsRecordingClient(t, 204, "")
 	if err := rejectDomainPush(context.Background(), c, "1010", 42); err != nil {
 		t.Fatal(err)
 	}

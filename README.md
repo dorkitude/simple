@@ -40,8 +40,8 @@ Tracking PR: https://github.com/Homebrew/homebrew-core/pull/269619
 - Full-screen domain dashboard with sections for overview, records, zone, diagnostics, and actions
 - Confirm-typed mutation dialogs (`type confirm`) for destructive/state-changing TUI actions
 - Demo mode (`simple demo`) using the real TUI against an in-memory fake backend
-- CLI coverage for auth, domains, zones, and records (including record create/update/delete)
-- Registrar auto-renew status and on/off toggle (`simple domains autorenew`)
+- CLI coverage for the whole DNSimple API v2: domains, zones, records, registrar, certificates, contacts, templates, one-click services, secondary DNS, vanity name servers, webhooks, TLDs, billing, and DNS analytics
+- Money-spending and destructive commands print a dry-run plan and refuse to act without `--yes`
 - JSON output (`--json`) for scripting and automation
 - DNSimple sandbox support (`--sandbox`)
 
@@ -205,7 +205,96 @@ simple records update example.com 12345 --content 5.6.7.8
 simple records delete example.com 12345
 
 simple records distribution example.com 12345
+
+# priority 0 and per-region records
+simple records create example.com --type MX --content mx.example.com --priority 0
+simple records create example.com --type A --name geo --content 1.2.3.4 --regions SV1,IAD
 ```
+
+#### Zone NS records and batch changes
+
+```bash
+simple zones ns example.com ns1.example.net ns2.example.net --yes
+simple zones batch example.com --file changes.json --dry-run
+simple zones batch example.com --create '{"type":"A","name":"www","content":"1.2.3.4"}' --delete 12345 --yes
+```
+
+#### Domain extras: DNSSEC, DS records, email forwards, pushes
+
+```bash
+simple domains dnssec example.com            # show
+simple domains dnssec example.com on
+simple domains ds list example.com
+simple domains ds create example.com --algorithm 13 --digest ABC --digest-type 2 --keytag 1234
+simple domains forwards list example.com
+simple domains forwards create example.com --from hello --to me@example.net
+simple domains push example.com --to someone@example.net --yes
+simple pushes list
+simple pushes accept 42 --contact-id 7
+```
+
+#### Registrar
+
+```bash
+simple registrar check example.com
+simple registrar prices example.com
+simple registrar register example.com --registrant-id 7 --whois-privacy --auto-renew --yes
+simple registrar transfer example.com --registrant-id 7 --auth-code XYZ --yes
+simple registrar renew example.com --period 1 --yes
+simple registrar nameservers example.com                         # show delegation
+simple registrar nameservers example.com ns1.x.net ns2.x.net --yes
+simple registrar nameservers example.com --to-vanity ns1.example.com ns2.example.com --yes
+simple registrar transfer-lock example.com off
+simple registrar whois-privacy example.com on
+simple registrar autorenew example.com on
+simple registrar registrant-changes list
+```
+
+#### Certificates
+
+```bash
+simple certificates list example.com
+simple certificates download example.com 12345 --out ./certs
+simple certificates private-key example.com 12345 --out example.key   # written 0600, never printed
+simple certificates letsencrypt purchase example.com --name www --auto-renew --yes
+simple certificates letsencrypt issue example.com 999
+```
+
+#### Contacts, templates, services
+
+```bash
+simple contacts list
+simple contacts create --first-name Ada --last-name Lovelace --email ada@example.com ...
+simple templates create --name Web --sid web
+simple templates records create web --type A --content 1.2.3.4
+simple templates apply web example.com --yes
+simple services list
+simple services apply heroku example.com --setting app=my-app --yes
+```
+
+#### Secondary DNS and vanity name servers
+
+```bash
+simple secondary primaries list
+simple secondary primaries create main --ip 1.2.3.4 --port 53
+simple secondary primaries link 5 example.com
+simple secondary zones create example.com
+simple vanity enable example.com
+```
+
+#### Accounts, webhooks, TLDs, billing, analytics
+
+```bash
+simple accounts list
+simple accounts use 12345            # make it the default account
+simple webhooks create https://example.com/hook
+simple tlds get io
+simple tlds attributes uk
+simple billing charges --start-date 2026-01-01
+simple analytics --groupings zone_name --start-date 2026-09-01
+```
+
+Every command accepts `--json`.
 
 ### JSON output for automation
 
@@ -376,7 +465,7 @@ What is still CLI-only or missing in the TUI:
 
 - Record create/update flows
 - Batch record changes
-- Some advanced DNSimple features (DNSSEC, templates, webhooks, most registrar APIs, etc.)
+- Registrar, certificates, contacts, templates, services, secondary DNS, webhooks, billing and analytics (all available in the CLI)
 
 See `ROADMAP.md` for the implementation roadmap and API coverage priorities.
 
