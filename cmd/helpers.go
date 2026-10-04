@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 
-	"github.com/dnsimple/dnsimple-go/dnsimple"
+	"github.com/dnsimple/dnsimple-go/v9/dnsimple"
 	"github.com/dorkitude/simple/internal/client"
 	"github.com/dorkitude/simple/internal/output"
 )

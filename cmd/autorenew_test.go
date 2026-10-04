@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dnsimple/dnsimple-go/dnsimple"
+	"github.com/dnsimple/dnsimple-go/v9/dnsimple"
 )
 
 func TestParseOnOff(t *testing.T) {
