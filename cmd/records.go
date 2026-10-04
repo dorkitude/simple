@@ -3,12 +3,73 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/dnsimple/dnsimple-go/v9/dnsimple"
 	"github.com/dorkitude/simple/internal/ui"
 	"github.com/spf13/cobra"
 )
+
+// RecordFields is the create/update body for a zone record. Unlike the SDK's
+// ZoneRecordAttributes, whose int fields are omitempty, TTL and Priority are
+// pointers so an explicit 0 (an MX record with priority 0) reaches the API.
+// It also serves as one entry of a batch change (ID set only for updates).
+type RecordFields struct {
+	ID       int64    `json:"id,omitempty"`
+	Type     string   `json:"type,omitempty"`
+	Name     *string  `json:"name,omitempty"`
+	Content  string   `json:"content,omitempty"`
+	TTL      *int     `json:"ttl,omitempty"`
+	Priority *int     `json:"priority,omitempty"`
+	Regions  []string `json:"regions,omitempty"`
+}
+
+// recordFieldsFromFlags reads --ttl, --priority and --regions, keeping only
+// the flags the user actually set (so 0 is a real value, not "unset").
+func recordFieldsFromFlags(cmd *cobra.Command) RecordFields {
+	var attrs RecordFields
+	if cmd.Flags().Changed("ttl") {
+		ttl, _ := cmd.Flags().GetInt("ttl")
+		attrs.TTL = &ttl
+	}
+	if cmd.Flags().Changed("priority") {
+		priority, _ := cmd.Flags().GetInt("priority")
+		attrs.Priority = &priority
+	}
+	if cmd.Flags().Changed("regions") {
+		regions, _ := cmd.Flags().GetStringSlice("regions")
+		attrs.Regions = regions
+	}
+	return attrs
+}
+
+func zoneRecordsPath(accountID, zone string) string {
+	return fmt.Sprintf("/v2/%s/zones/%s/records", url.PathEscape(accountID), url.PathEscape(zone))
+}
+
+// createZoneRecord posts a record directly (not via Zones.CreateRecord) so a
+// zero TTL or priority is not dropped by the SDK's omitempty tags.
+func createZoneRecord(ctx context.Context, c *dnsimple.Client, accountID, zone string, attrs RecordFields) (*dnsimple.ZoneRecordResponse, error) {
+	attrs.ID = 0
+	out := &dnsimple.ZoneRecordResponse{}
+	if _, err := c.Request(ctx, http.MethodPost, zoneRecordsPath(accountID, zone), attrs, out, nil); err != nil {
+		return nil, fmt.Errorf("failed to create record: %w", err)
+	}
+	return out, nil
+}
+
+// updateZoneRecord patches a record directly; see createZoneRecord.
+func updateZoneRecord(ctx context.Context, c *dnsimple.Client, accountID, zone string, recordID int64, attrs RecordFields) (*dnsimple.ZoneRecordResponse, error) {
+	attrs.ID = 0
+	out := &dnsimple.ZoneRecordResponse{}
+	path := fmt.Sprintf("%s/%d", zoneRecordsPath(accountID, zone), recordID)
+	if _, err := c.Request(ctx, http.MethodPatch, path, attrs, out, nil); err != nil {
+		return nil, fmt.Errorf("failed to update record: %w", err)
+	}
+	return out, nil
+}
 
 var recordsCmd = &cobra.Command{
 	Use:     "records",
@@ -165,6 +226,8 @@ Examples:
   simple records create example.com --type A --name www --content 1.2.3.4
   simple records create example.com --type CNAME --name blog --content example.com
   simple records create example.com --type MX --name "" --content mail.example.com --priority 10
+  simple records create example.com --type MX --name "" --content mx.example.com --priority 0
+  simple records create example.com --type A --name geo --content 1.2.3.4 --regions SV1,IAD
   simple records create example.com --type TXT --name @ --content "v=spf1 include:_spf.google.com ~all"`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -178,28 +241,19 @@ Examples:
 		recordType, _ := cmd.Flags().GetString("type")
 		name, _ := cmd.Flags().GetString("name")
 		content, _ := cmd.Flags().GetString("content")
-		ttl, _ := cmd.Flags().GetInt("ttl")
-		priority, _ := cmd.Flags().GetInt("priority")
 
 		if recordType == "" || content == "" {
 			return fmt.Errorf("--type and --content are required")
 		}
 
-		attrs := dnsimple.ZoneRecordAttributes{
-			Type:    recordType,
-			Name:    dnsimpleString(name),
-			Content: content,
-		}
-		if ttl > 0 {
-			attrs.TTL = ttl
-		}
-		if priority > 0 {
-			attrs.Priority = priority
-		}
+		attrs := recordFieldsFromFlags(cmd)
+		attrs.Type = recordType
+		attrs.Name = dnsimpleString(name)
+		attrs.Content = content
 
-		resp, err := app.Client.Zones.CreateRecord(ctx, app.AccountID, zone, attrs)
+		resp, err := createZoneRecord(ctx, app.Client, app.AccountID, zone, attrs)
 		if err != nil {
-			return fmt.Errorf("failed to create record: %w", err)
+			return err
 		}
 
 		if printJSON(resp.Data) {
@@ -225,7 +279,9 @@ var recordsUpdateCmd = &cobra.Command{
 
 Examples:
   simple records update example.com 12345 --content 5.6.7.8
-  simple records update example.com 12345 --name www2 --ttl 600`,
+  simple records update example.com 12345 --name www2 --ttl 600
+  simple records update example.com 12345 --priority 0
+  simple records update example.com 12345 --regions global`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
@@ -240,8 +296,7 @@ Examples:
 			return fmt.Errorf("invalid record ID: %w", err)
 		}
 
-		attrs := dnsimple.ZoneRecordAttributes{}
-
+		attrs := recordFieldsFromFlags(cmd)
 		if cmd.Flags().Changed("name") {
 			name, _ := cmd.Flags().GetString("name")
 			attrs.Name = dnsimpleString(name)
@@ -250,18 +305,10 @@ Examples:
 			content, _ := cmd.Flags().GetString("content")
 			attrs.Content = content
 		}
-		if cmd.Flags().Changed("ttl") {
-			ttl, _ := cmd.Flags().GetInt("ttl")
-			attrs.TTL = ttl
-		}
-		if cmd.Flags().Changed("priority") {
-			priority, _ := cmd.Flags().GetInt("priority")
-			attrs.Priority = priority
-		}
 
-		resp, err := app.Client.Zones.UpdateRecord(ctx, app.AccountID, zone, recordID, attrs)
+		resp, err := updateZoneRecord(ctx, app.Client, app.AccountID, zone, recordID, attrs)
 		if err != nil {
-			return fmt.Errorf("failed to update record: %w", err)
+			return err
 		}
 
 		if printJSON(resp.Data) {
@@ -367,13 +414,15 @@ func init() {
 	recordsCreateCmd.Flags().StringP("name", "n", "", "Record name (@ or empty for apex)")
 	recordsCreateCmd.Flags().StringP("content", "c", "", "Record content/value")
 	recordsCreateCmd.Flags().Int("ttl", 0, "Time to live in seconds")
-	recordsCreateCmd.Flags().Int("priority", 0, "Record priority (for MX, SRV)")
+	recordsCreateCmd.Flags().Int("priority", 0, "Record priority (for MX, SRV); 0 is sent when given")
+	recordsCreateCmd.Flags().StringSlice("regions", nil, "Regions to serve the record from (comma-separated, e.g. SV1,IAD or global)")
 
 	recordsCmd.AddCommand(recordsUpdateCmd)
 	recordsUpdateCmd.Flags().StringP("name", "n", "", "New record name")
 	recordsUpdateCmd.Flags().StringP("content", "c", "", "New record content")
 	recordsUpdateCmd.Flags().Int("ttl", 0, "New TTL")
-	recordsUpdateCmd.Flags().Int("priority", 0, "New priority")
+	recordsUpdateCmd.Flags().Int("priority", 0, "New priority (0 is allowed)")
+	recordsUpdateCmd.Flags().StringSlice("regions", nil, "New regions (comma-separated, e.g. SV1,IAD or global)")
 
 	recordsCmd.AddCommand(recordsDeleteCmd)
 	recordsCmd.AddCommand(recordsDistributionCmd)
